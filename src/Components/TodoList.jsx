@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material";
 import { Button } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TasksList from "./TasksList";
 import "../Styling/TodoList.css";
 import Alert from "@mui/material/Alert";
@@ -12,9 +12,13 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContentText from "@mui/material/DialogContentText";
 
-export default function AddContainer() {
+export default function TodoList() {
   const [task, setTask] = useState("");
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(() => {
+    const stored = localStorage.getItem("todos");
+    return stored ? JSON.parse(stored) : [];
+  });
+
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -23,6 +27,18 @@ export default function AddContainer() {
   const [deleteId, setDeleteId] = useState(null);
   const [editText, setEditText] = useState("");
   const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(tasks));
+  }, [tasks]);
+  // useEffect(() => {
+  //   const storedTodo = JSON.parse(localStorage.getItem("todos"));
+  //   if (storedTodo) {
+  //     console.log(storedTodo);
+  //     console.log("get storage");
+  //     setTasks(storedTodo);
+  //   }
+  // }, []);
 
   function showError() {
     setError(true);
@@ -55,7 +71,10 @@ export default function AddContainer() {
       status: "pending",
     };
 
-    setTasks((prev) => [...prev, newTask]);
+    const updatedTasks = [...tasks, newTask];
+    // localStorage.setItem("todos", JSON.stringify(updatedTasks));
+
+    setTasks(updatedTasks);
     setTask("");
     showSuccess();
   }
@@ -116,6 +135,8 @@ export default function AddContainer() {
         borderRadius: "20px",
         boxShadow: "0 0 40px rgba(0,0,0,0.6)",
         textAlign: "center",
+        maxHeight: "80vh",
+        overflow: "scroll"
       }}
     >
       {error && <Alert severity="error">Please add a Task</Alert>}

@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material";
 import { Button } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import TasksList from "./TasksList";
 import "../Styling/TodoList.css";
 import Alert from "@mui/material/Alert";
@@ -11,6 +11,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContentText from "@mui/material/DialogContentText";
+import { Details } from "@mui/icons-material";
 
 export default function TodoList() {
   const [task, setTask] = useState("");
@@ -25,20 +26,23 @@ export default function TodoList() {
   const [completed, setCompleted] = useState(false);
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [clear, setClear] = useState(false);
   const [editText, setEditText] = useState("");
+  const [detailsText, setDetailsText] = useState("");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(tasks));
   }, [tasks]);
-  // useEffect(() => {
-  //   const storedTodo = JSON.parse(localStorage.getItem("todos"));
-  //   if (storedTodo) {
-  //     console.log(storedTodo);
-  //     console.log("get storage");
-  //     setTasks(storedTodo);
-  //   }
-  // }, []);
+
+  const filteredTasks = useMemo(() => {
+    console.log("in useMemo Filter");
+    return tasks.filter((t) => {
+      if (filter === "pending") return t.status === "pending";
+      if (filter === "completed") return t.status === "completed";
+      return true;
+    });
+  }, [tasks, filter]);
 
   function showError() {
     setError(true);
@@ -69,6 +73,7 @@ export default function TodoList() {
       id: crypto.randomUUID(),
       title: task,
       status: "pending",
+      details: "",
     };
 
     const updatedTasks = [...tasks, newTask];
@@ -93,10 +98,13 @@ export default function TodoList() {
     const taskToEdit = tasks.find((t) => t.id === id);
     setEditId(id);
     setEditText(taskToEdit.title);
+    setDetailsText(taskToEdit.details);
   }
   function handleSave() {
     setTasks(
-      tasks.map((t) => (t.id === editId ? { ...t, title: editText } : t)),
+      tasks.map((t) =>
+        t.id === editId ? { ...t, title: editText, details: detailsText } : t,
+      ),
     );
     setEditId(null);
     setDeleteId(null);
@@ -119,11 +127,14 @@ export default function TodoList() {
     );
   }
 
-  const filteredTasks = tasks.filter((t) => {
-    if (filter === "pending") return t.status === "pending";
-    if (filter === "completed") return t.status === "completed";
-    return true;
-  });
+  function handleClearBtn() {
+    setClear(true);
+  }
+
+  function handleConfirmClearAll() {
+    localStorage.clear();
+    window.location.reload();
+  }
 
   return (
     <div
@@ -136,7 +147,7 @@ export default function TodoList() {
         boxShadow: "0 0 40px rgba(0,0,0,0.6)",
         textAlign: "center",
         maxHeight: "80vh",
-        overflow: "scroll"
+        overflow: "scroll",
       }}
     >
       {error && <Alert severity="error">Please add a Task</Alert>}
@@ -146,48 +157,72 @@ export default function TodoList() {
       {success && <Alert severity="success">Task added Successfully ✅</Alert>}
       {deleted && <Alert severity="info">Task Deleted</Alert>}
 
-      <h2 style={{ color: "#22c55e", fontSize: "45px" }}>To Do List 🎯</h2>
-
-      {/* FILTERS */}
-      <ToggleButtonGroup
-        exclusive
-        value={filter}
-        onChange={(e, val) => val && setFilter(val)}
-        sx={{ mb: 2 }}
+      <div
+        className="headingandbutton"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
-        <ToggleButton
-          value="all"
-          sx={{
-            color: "white",
-            border: "1px solid #334155",
-            "&.Mui-selected": { background: "#22c55e" },
-          }}
-        >
-          All
-        </ToggleButton>
+        <h2 style={{ color: "#22c55e", fontSize: "45px" }}>To Do List 🎯</h2>
 
-        <ToggleButton
-          value="pending"
+        <Button
+          variant="outlined"
+          color="error"
+          disabled={tasks.length === 0}
+          onClick={handleClearBtn}
           sx={{
-            color: "white",
-            border: "1px solid #334155",
-            "&.Mui-selected": { background: "#f59e0b" },
+            borderRadius: "10px",
+            background: tasks.length > 0 ? "none" : "grey",
+            px: 3,
           }}
         >
-          Pending
-        </ToggleButton>
+          Clear All
+        </Button>
+        {/* FILTERS */}
+        <ToggleButtonGroup
+          exclusive
+          value={filter}
+          onChange={(e, val) => val && setFilter(val)}
+          sx={{ mb: 2 }}
+        >
+          <ToggleButton
+            value="all"
+            sx={{
+              color: "white",
+              border: "1px solid #334155",
+              "&.Mui-selected": { background: "#22c55e" },
+            }}
+          >
+            All
+          </ToggleButton>
 
-        <ToggleButton
-          value="completed"
-          sx={{
-            color: "white",
-            border: "1px solid #334155",
-            "&.Mui-selected": { background: "#22c55e" },
-          }}
-        >
-          Completed
-        </ToggleButton>
-      </ToggleButtonGroup>
+          <ToggleButton
+            value="pending"
+            sx={{
+              color: "white",
+              border: "1px solid #334155",
+              "&.Mui-selected": { background: "#f59e0b" },
+            }}
+          >
+            Pending
+          </ToggleButton>
+
+          <ToggleButton
+            value="completed"
+            sx={{
+              color: "white",
+              border: "1px solid #334155",
+              "&.Mui-selected": { background: "#22c55e" },
+            }}
+          >
+            Completed
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </div>
 
       {/* INPUT */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
@@ -218,6 +253,7 @@ export default function TodoList() {
       {/* TASKS */}
       <TasksList
         tasks={filteredTasks}
+        // details={details}
         onDelete={handleDelete}
         onEdit={handleEdit}
         onComplete={handleComplete}
@@ -247,6 +283,31 @@ export default function TodoList() {
       </Dialog>
 
       <Dialog
+        open={clear && tasks.length > 0}
+        onClose={() => setClear(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        role="alertdialog"
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "10px",
+            padding: "10px",
+            minWidth: "300px",
+            background: "black",
+            color: "#fff",
+          },
+        }}
+      >
+        <DialogTitle id="alert-dialog-title">{"Clear All Tasks? "}</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setClear(false)} autoFocus>
+            No
+          </Button>
+          <Button onClick={handleConfirmClearAll}>Yes</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={editId !== null}
         onClose={() => setEditId(null)}
         sx={{
@@ -264,6 +325,22 @@ export default function TodoList() {
             fullWidth
             value={editText}
             onChange={(e) => setEditText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSave();
+              }
+            }}
+            sx={{
+              input: { color: "white" },
+              mt: 1,
+            }}
+          />
+          <TextField
+            fullWidth
+            value={detailsText}
+            placeholder="Task Details"
+            onChange={(e) => setDetailsText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();

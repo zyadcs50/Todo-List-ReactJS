@@ -2,9 +2,9 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import "./TaskItem.css"
+import "./TaskItem.css";
 
 export default function TaskItem({ task, onDelete, onEdit, onComplete }) {
   return (
@@ -21,21 +21,50 @@ export default function TaskItem({ task, onDelete, onEdit, onComplete }) {
       }}
     >
       <div className="first-part">
-        <IconButton 
+        <IconButton
           onClick={() => onComplete(task.id)}
           color={task.status === "completed" ? "success" : "default"}
         >
-          {task.status === "completed" ? <CheckCircleIcon className="true" style={{ color: "green" }}/> : <CheckCircleOutlinedIcon className="true" style={{ color: "green" }}/>} 
+          {task.status === "completed" ? (
+            <CheckCircleIcon className="true" style={{ color: "green" }} />
+          ) : (
+            <CheckCircleOutlinedIcon
+              className="true"
+              style={{ color: "green" }}
+            />
+          )}
         </IconButton>
-        <h3
+        <div
+          className="task-info"
           style={{
-            textDecoration:
-              task.status === "completed" ? "line-through" : "none",
-            color: task.status === "completed" ? "#888" : "inherit",
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+            marginTop: "10px",
+            textAlign: "left",
           }}
         >
-          {task.title}
-        </h3>
+          <h3
+            style={{
+              margin: 0,
+              textDecoration:
+                task.status === "completed" ? "line-through" : "none",
+              color: task.status === "completed" ? "#888" : "inherit",
+            }}
+          >
+            {task.title}
+          </h3>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#fff",
+              opacity: 0.8,
+            }}
+          >
+            {task.details}
+          </p>
+        </div>
       </div>
 
       <div>
